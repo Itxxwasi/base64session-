@@ -1,1 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>WASI QR Web</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+    }
+    #qr img {
+      margin-top: 20px;
+      border: 2px solid #000;
+      padding: 10px;
+      background: white;
+    }
+    textarea {
+      margin-top: 10px;
+      width: 80%;
+      height: 100px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>WASI QR Code Generator</h1>
+  <p id="status">Loading...</p>
+  <div id="qr"></div>
+  <div id="session"></div>
+
+  <script>
+    async function checkStatus() {
+      const res = await fetch("/status");
+      const data = await res.json();
+
+      if (data.status === "qr") {
+        document.getElementById("status").innerText = "Scan the QR code below:";
+        document.getElementById("qr").innerHTML = `<img src="${data.qr}" width="300">`;
+      } else if (data.status === "connected") {
+        document.getElementById("status").innerText = "✅ Connected!";
+        document.getElementById("qr").innerHTML = "";
+        document.getElementById("session").innerHTML = `
+          <p>Your SESSION_ID:</p>
+          <textarea id="sessionText">${data.sessionId}</textarea><br>
+          <button onclick="copySession()">Copy SESSION_ID</button>
+        `;
+        clearInterval(interval);
+      } else {
+        document.getElementById("status").innerText = "Waiting for QR...";
+      }
+    }
+
+    function copySession() {
+      const text = document.getElementById("sessionText");
+      text.select();
+      document.execCommand("copy");
+      alert("SESSION_ID copied to clipboard!");
+    }
+
+    const interval = setInterval(checkStatus, 3000);
+    checkStatus();
+  </script>
+</body>
+</html>
 
